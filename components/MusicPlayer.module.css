@@ -103,3 +103,77 @@
   opacity: 0.9;
 }
 
+.lyricsToggle {
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  align-self: center;
+}
+
+.lyricsToggle:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.lyricsToggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.lyricsContainer {
+  margin-top: 1.5rem;
+  max-height: 400px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.lyricsContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.lyricsLine {
+  padding: 0.5rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.3s ease;
+  min-height: 1.5rem;
+}
+
+.lyricsLineActive {
+  color: white;
+  font-weight: 600;
+  font-size: 1.1rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  transform: scale(1.05);
+}
+
+.lyricsContainer::-webkit-scrollbar {
+  width: 8px;
+}
+
+.lyricsContainer::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.lyricsContainer::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.lyricsContainer::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+

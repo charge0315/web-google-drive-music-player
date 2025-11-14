@@ -27,15 +27,30 @@ export function useGoogleDrive() {
       }
       
       const data = await response.json()
-      if (data.authUrl) {
+            if (data.authUrl) {
         // 新しいウィンドウで認証を開く
         const authWindow = window.open(
           data.authUrl,
           'Google認証',
           'width=500,height=600'
         )
+
+        // postMessageでの完了通知を待つ（COOPでも安全）
+        const handleMessage = async (event: MessageEvent) => {
+          try {
+            if (event.origin !== window.location.origin) return
+            if (event.data && event.data.type === 'google-drive-auth-complete') {
+              window.removeEventListener('message', handleMessage)
+              if (authWindow && !authWindow.closed) authWindow.close()
+              setIsAuthenticated(true)
+              setLoading(false)
+              await loadFiles()
+            }
+          } catch {}
+        }
+        window.addEventListener('message', handleMessage)
         
-        // 認証完了を待つ（実際の実装では、ポーリングやメッセージングを使用）
+        // ポーリング（フォールバック）
         const checkAuth = setInterval(async () => {
           try {
             const statusResponse = await fetch('/api/drive/auth/status')
@@ -43,7 +58,8 @@ export function useGoogleDrive() {
             
             if (statusData.authenticated) {
               clearInterval(checkAuth)
-              if (authWindow) authWindow.close()
+              window.removeEventListener('message', handleMessage)
+              if (authWindow && !authWindow.closed) authWindow.close()
               setIsAuthenticated(true)
               setLoading(false)
               await loadFiles()
@@ -56,7 +72,8 @@ export function useGoogleDrive() {
         // 10分後にタイムアウト
         setTimeout(() => {
           clearInterval(checkAuth)
-          if (authWindow) authWindow.close()
+          window.removeEventListener('message', handleMessage)
+          if (authWindow && !authWindow.closed) authWindow.close()
           if (!isAuthenticated) {
             setError('認証がタイムアウトしました')
             setLoading(false)

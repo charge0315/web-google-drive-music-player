@@ -23,7 +23,7 @@ export async function GET(request: Request) {
     const { tokens } = await oauth2Client.getToken(code)
     oauth2Client.setCredentials(tokens)
 
-    // トークンをCookieに保存（実際の実装では、セッションストレージやデータベースを使用することを推奨）
+        // トークンをCookieに保存（実際の実装では、セッションストレージやデータベースを使用することを推奨）
     const cookieStore = await cookies()
     cookieStore.set('google_drive_token', JSON.stringify(tokens), {
       httpOnly: true,
@@ -32,7 +32,25 @@ export async function GET(request: Request) {
       maxAge: 60 * 60 * 24 * 7, // 7日間
     })
 
-    return NextResponse.redirect(new URL('/', request.url))
+    // 親ウィンドウからのwindow.closeはCOOPでブロックされる場合があるため
+    // ポップアップ自身でクローズ＋通知してからフォールバックでリダイレクト
+    const html = `<!DOCTYPE html>
+<html><head><meta charset="utf-8" /><title>Auth Completed</title></head>
+<body>
+<script>
+  try {
+    if (window.opener && !window.opener.closed) {
+      window.opener.postMessage({ type: 'google-drive-auth-complete' }, window.location.origin);
+    }
+    window.close();
+  } catch (e) {}
+  // 念のためのフォールバック（タブ/ポップアップが閉じられない場合）
+  setTimeout(function(){ window.location.replace('/'); }, 500);
+</script>
+認証が完了しました。このウィンドウは自動的に閉じられます。
+</body></html>`
+
+    return new NextResponse(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } })
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message || '認証に失敗しました' },
